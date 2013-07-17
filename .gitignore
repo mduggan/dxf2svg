@@ -1,0 +1,6 @@
+.DS_Store
+*.o
+dxf2svg
+xcuserdata
+project.xcworkspace
+dxf2svg.dSYM
