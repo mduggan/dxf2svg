@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int detmine_entity(char* value){
+int detmine_entity(const char* value){
 	// Common Elements as far as I am concerend
 	if ( strncmp(value,"POLYLINE",8) == 0 ) return 0;	
 	if ( strncmp(value,"ARC",3) == 0 ) return 1;	
@@ -61,24 +61,18 @@ int detmine_entity(char* value){
 }
 
 
-void entity::basic_entity( std::vector< dxfpair > info){
+void entity::basic_entity( const std::vector< dxfpair > &info){
 	// Extract all of the typical entity information (e.g. layer name, positions)
-	static char string[10000];
 	for (size_t i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 6:
-				strcpy( string," "); // Clear the string out
-				info[i].value_char(string);
-				strcpy(linetype,string);
+				linetype = info[i].value_char();
 				break;
 			case 8:
-				strcpy( string," ");  // Clear the string out
-				info[i].value_char(string);
-				strcpy(layer,string);
+				layer = info[i].value_char();
 				break;
 			case 10:
-				info[i].value_char(string);
-				x = atof(string);
+				x = atof(info[i].value_char());
 				if ( x < min_x ){
 					min_x = x;
 				}
@@ -87,8 +81,7 @@ void entity::basic_entity( std::vector< dxfpair > info){
 				}				
 				break;
 			case 20:
-				info[i].value_char(string);
-				y = atof(string);
+				y = atof(info[i].value_char());
 				if ( y < min_y ){
 					min_y = y;
 				}
@@ -97,52 +90,51 @@ void entity::basic_entity( std::vector< dxfpair > info){
 				}
 				break;
 			case 30:
-				info[i].value_char(string);
-				z = atof(string);
+				z = atof(info[i].value_char());
 				break;
 		}
 	}
 	
 }
 
-void entity::entity_display(){
+void entity::entity_display() const{
 	std::cout << "\tlayer = " << layer << "\n\tlinetype = " << linetype << "\n\tx = " << x << "\ty = " << y << "\tz = " << z << std::flush;
 }
 
-double entity::ret_x(){
+double entity::ret_x() const{
 	return x;
 }
 
-double entity::ret_y(){
+double entity::ret_y() const{
 	return y;
 }
 
-double entity::ret_z(){
+double entity::ret_z() const{
 	return z;
 }
 
 
 const char* entity::ret_layer_name() const{
-	return layer;
+	return layer.c_str();
 }
 
 const char* entity::ret_ltype_name() const{
-	return linetype;
+	return linetype.c_str();
 }
 
-double entity::ret_min_x(){
+double entity::ret_min_x() const{
 	return min_x;
 }
 
-double entity::ret_max_x(){
+double entity::ret_max_x() const{
 	return max_x;
 }
 
-double entity::ret_min_y(){
+double entity::ret_min_y() const{
 	return min_y;
 }
 
-double entity::ret_max_y(){
+double entity::ret_max_y() const{
 	return max_y;
 }
 
@@ -175,26 +167,24 @@ void entity::reset_extents(){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-vertex::vertex( std::vector< dxfpair > info){
+vertex::vertex( const std::vector< dxfpair > &info){
 	// Get the vertex information
 	
 	basic_entity( info );
-	static char string[10000];
 	for (size_t i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 42:
-				info[i].value_char(string);
-				bulge = atof(string);
+				bulge = atof(info[i].value_char());
 				break;
 		}
 	}	
 }
 
-double vertex::ret_bulge(){
+double vertex::ret_bulge() const{
 	return bulge;
 }
 
-void vertex::display(){
+void vertex::display() const{
 	std::cout << "VERTEX\n";
 	std::cout << "\tx = " << x << "\ty = " << y << "\tz = " << z << "\tbulge = " << bulge << std::flush;
 }
@@ -210,32 +200,26 @@ void vertex::display(){
 
 
 // The polyline is handled a little differently compared to the other entities because a POLYLINE is built from a bunch of VERTEX entities
-polyline::polyline( std::vector< std::vector< dxfpair > > sections ){
+polyline::polyline( const std::vector< std::vector< dxfpair > > &sections ){
 	reset_extents();
 	// get the polyline information
 	basic_entity( sections[0] );
 	points.clear();
-	static char string[10000];
-	//char string[10000];
 	pline_flag = 0;
 	curves_flag = 0;
 	for (size_t i = 0; i < sections[0].size(); i++){
 		switch( sections[0][i].group_code ){
 			case 70:
-				sections[0][i].value_char(string);
-				pline_flag = atoi(string);
+				pline_flag = atoi(sections[0][i].value_char());
 				break;
 			case 40:
-				sections[0][i].value_char(string);
-				start_width = atoi(string);
+				start_width = atoi(sections[0][i].value_char());
 				break;
 			case 41:
-				sections[0][i].value_char(string);
-				end_width = atoi(string);
+				end_width = atoi(sections[0][i].value_char());
 				break;
 			case 75:
-				sections[0][i].value_char(string);
-				curves_flag = atoi(string);
+				curves_flag = atoi(sections[0][i].value_char());
 				break;
 		}
 	}
@@ -246,15 +230,15 @@ polyline::polyline( std::vector< std::vector< dxfpair > > sections ){
 }
 
 
-std::vector< vertex > polyline::ret_points(){
+const std::vector< vertex > &polyline::ret_points() const{
 	return points;
 }
 
-double polyline::bulge(int point){
+double polyline::bulge(int point) const{
 	return points[point].ret_bulge();
 }
 
-double polyline::bulge_r(int point){
+double polyline::bulge_r(int point) const{
 	// Make sure we are not exceeding the bounds of the points vector
 	if (point >= (points.size()-1)) return 0;
 	
@@ -267,7 +251,7 @@ double polyline::bulge_r(int point){
 	return r;
 }
 
-double polyline::bulge_start_angle(int point){
+double polyline::bulge_start_angle(int point) const{
 	// Make sure we are not exceeding the bounds of the points vector
 	if (point >= (points.size()-1)) return 0;
 	
@@ -296,7 +280,7 @@ double polyline::bulge_start_angle(int point){
 	return theta;	
 }
 
-double polyline::bulge_end_angle(int point){
+double polyline::bulge_end_angle(int point) const{
 	// Make sure we are not exceeding the bounds of the points vector
 	if (point >= (points.size()-1)) return 0;
 	
@@ -326,12 +310,12 @@ double polyline::bulge_end_angle(int point){
 }
 
 
-bool polyline::is_closed(){
+bool polyline::is_closed() const{
 	// pline-flag holds info about closed pline in the 1 bit.  The info is bit wise encoded so use bit wise operators
 	return bool(pline_flag&1);
 }
 
-void polyline::display(){
+void polyline::display() const{
 	std::cout << "POLYLINE\n";
 	entity_display();
 	std::cout << std::endl;
@@ -351,16 +335,12 @@ void polyline::display(){
 
 
 // The lwpolyline is different than the polyline because there are no vertex entities.  Use the same basic process as the polyline but parse it out differently
-lwpolyline::lwpolyline( std::vector< dxfpair > section ){
+lwpolyline::lwpolyline( const std::vector< dxfpair > &section ){
 	
 	// First break up the data into the same format that is used by the polyline entity
 	std::vector< std::vector< dxfpair > > sections;
 	std::vector< dxfpair > first;
 	std::vector< dxfpair > others;
-	
-	sections.clear();
-	first.clear();
-	others.clear();
 	
 	int gc;  // make a shorter name for group_code;
 	
@@ -408,27 +388,21 @@ lwpolyline::lwpolyline( std::vector< dxfpair > section ){
 	reset_extents();
 	basic_entity( first );
 	points.clear();
-	static char string[10000];
-	//char string[10000];
 	pline_flag = 0;
 	curves_flag = 0;
 	for (size_t i = 0; i < first.size(); i++){
 		switch( sections[0][i].group_code ){
 			case 70:
-				first[i].value_char(string);
-				pline_flag = atoi(string);
+				pline_flag = atoi(first[i].value_char());
 				break;
 			case 40:
-				first[i].value_char(string);
-				start_width = atoi(string);
+				start_width = atoi(first[i].value_char());
 				break;
 			case 41:
-				first[i].value_char(string);
-				end_width = atoi(string);
+				end_width = atoi(first[i].value_char());
 				break;
 			case 75:
-				first[i].value_char(string);
-				curves_flag = atoi(string);
+				curves_flag = atoi(first[i].value_char());
 				break;
 		}
 	}
@@ -440,16 +414,16 @@ lwpolyline::lwpolyline( std::vector< dxfpair > section ){
 
 
 
-std::vector< vertex > lwpolyline::ret_points(){
+const std::vector< vertex > &lwpolyline::ret_points() const{
 	return points;
 }
 
 
-double lwpolyline::bulge(int point){
+double lwpolyline::bulge(int point) const{
 	return points[point].ret_bulge();
 }
 
-double lwpolyline::bulge_r(int point){
+double lwpolyline::bulge_r(int point) const{
 	// Make sure we are not exceeding the bounds of the points vector
 	if (point >= (points.size()-1)) return 0;
 	
@@ -462,7 +436,7 @@ double lwpolyline::bulge_r(int point){
 	return r;
 }
 
-double lwpolyline::bulge_start_angle(int point){
+double lwpolyline::bulge_start_angle(int point) const{
 	// Make sure we are not exceeding the bounds of the points vector
 	if (point >= (points.size()-1)) return 0;
 	
@@ -491,7 +465,7 @@ double lwpolyline::bulge_start_angle(int point){
 	return theta;	
 }
 
-double lwpolyline::bulge_end_angle(int point){
+double lwpolyline::bulge_end_angle(int point) const{
 	// Make sure we are not exceeding the bounds of the points vector
 	if (point >= (points.size()-1)) return 0;
 	
@@ -520,12 +494,12 @@ double lwpolyline::bulge_end_angle(int point){
 	return theta;	
 }
 
-bool lwpolyline::is_closed(){
+bool lwpolyline::is_closed() const{
 	// pline-flag holds info about closed pline in the 1 bit.  The info is bit wise encoded so use bit wise operators
 	return bool(pline_flag&1);
 }
 
-void lwpolyline::display(){
+void lwpolyline::display() const{
 	std::cout << "lwpolyline\n";
 	entity_display();
 	std::cout << std::endl;
@@ -543,26 +517,22 @@ void lwpolyline::display(){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-arc::arc( std::vector< dxfpair > info){
+arc::arc( const std::vector< dxfpair > &info){
 	
 	reset_extents();
 	basic_entity( info );
-	static char string[10000];
 	for (size_t i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 40:
-				info[i].value_char(string);
-				radius = atof(string);
+				radius = atof(info[i].value_char());
 				test_coord(x+radius,y+radius);
 				test_coord(x-radius,y-radius);
 				break;
 			case 50:
-				info[i].value_char(string);
-				start_angle = atof(string);
+				start_angle = atof(info[i].value_char());
 				break;
 			case 51:
-				info[i].value_char(string);
-				end_angle = atof(string);
+				end_angle = atof(info[i].value_char());
 				break;
 			default:
 				break;
@@ -570,22 +540,22 @@ arc::arc( std::vector< dxfpair > info){
 	}
 }
 
-double arc::ret_radius(){
+double arc::ret_radius() const{
 	return radius;
 }
 
 
-double arc::ret_srt_ang(){
+double arc::ret_srt_ang() const{
 	return start_angle;
 }
 
 
-double arc::ret_end_ang(){
+double arc::ret_end_ang() const{
 	return end_angle;
 }
 
 
-void arc::display(){
+void arc::display() const{
 	std::cout << "ARC\n";
 	entity_display();
 	std::cout << "\n\tradius = " << radius << "\tstart_angle = " << start_angle << "end_angle = " << end_angle << std::flush;
@@ -598,16 +568,14 @@ void arc::display(){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-circle::circle( std::vector< dxfpair > info){
+circle::circle( const std::vector< dxfpair > &info){
 	
 	reset_extents();
 	basic_entity( info );
-	static char string[10000];
 	for (size_t i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 40:
-				info[i].value_char(string);
-				radius = atof(string);
+				radius = atof(info[i].value_char());
 				test_coord(x+radius,y+radius);
 				test_coord(x-radius,y-radius);
 				break;
@@ -615,14 +583,14 @@ circle::circle( std::vector< dxfpair > info){
 	}
 }
 
-void circle::display(){
+void circle::display() const{
 	std::cout << "CIRCLE\n";
 	entity_display();
 	std::cout << "\n\tradius = " << radius << std::flush;
 }
 
 
-double circle::ret_radius(){
+double circle::ret_radius() const{
 	return radius;
 }
 
@@ -632,24 +600,20 @@ double circle::ret_radius(){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-line::line( std::vector< dxfpair > info){
+line::line( const std::vector< dxfpair > &info){
 	
 	reset_extents();
 	basic_entity( info );
-	static char string[10000];
 	for (size_t i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 11:
-				info[i].value_char(string);
-				xf = atof(string);
+				xf = atof(info[i].value_char());
 				break;
 			case 21:
-				info[i].value_char(string);
-				yf = atof(string);
+				yf = atof(info[i].value_char());
 				break;
 			case 31:
-				info[i].value_char(string);
-				zf = atof(string);
+				zf = atof(info[i].value_char());
 				break;
 		}
 	}
@@ -657,22 +621,22 @@ line::line( std::vector< dxfpair > info){
 		
 }
 
-void line::display(){
+void line::display() const{
 	std::cout << "LINE\n";
 	entity_display();
 	std::cout << "\n\txf = " << xf << "\tyf = " << yf << "\tzf = " << zf << std::flush;
 }
 
 
-double line::ret_xf(){
+double line::ret_xf() const{
 	return xf;
 }
 
-double line::ret_yf(){
+double line::ret_yf() const{
 	return yf;
 }
 
-double line::ret_zf(){
+double line::ret_zf() const{
 	return zf;
 }
 
@@ -683,41 +647,38 @@ double line::ret_zf(){
 // TEXT
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-text::text( std::vector< dxfpair > info){
+text::text( const std::vector< dxfpair > &info){
 	
 	reset_extents();
 	basic_entity( info );
-	static char string[10000];
 	for (size_t i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 1:
-				info[i].value_char(dxf_text); // directly copy the text into a string
+				dxf_text = info[i].value_char(); // directly copy the text into a string
 				break;
 			case 40:
-				info[i].value_char(string);
-				text_height = atof(string);
+				text_height = atof(info[i].value_char());
 				break;
 			case 50:
-				info[i].value_char(string);
-				text_rotation = atof(string);
+				text_rotation = atof(info[i].value_char());
 				break;
 		}
 	}
 }
 
-const char * text::ret_text() const{
-	return dxf_text;
+const char * text::ret_text() const const{
+	return dxf_text.c_str();
 }
 
-double text::ret_txt_ht(){
+double text::ret_txt_ht() const{
 	return text_height;
 }
 
-double text::ret_txt_rot(){
+double text::ret_txt_rot() const{
 	return text_rotation;
 }
 
-void text::display(){
+void text::display() const{
 	std::cout << "TEXT\n";
 	entity_display();
 	std::cout << "\ndxf_text = " << ret_text() << std::flush;
@@ -727,30 +688,25 @@ void text::display(){
 // INSERT
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-insert::insert( std::vector< dxfpair > info){
+insert::insert( const std::vector< dxfpair > &info){
 	
 	basic_entity( info );
-	static char string[10000];
 	for (size_t i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 2:
-				info[i].value_char(block_name); // directly copy the text into a string
+				block_name = info[i].value_char(); // directly copy the text into a string
 				break;
 			case 41:
-				info[i].value_char(string);
-				x_scale_factor = atof(string);
+				x_scale_factor = atof(info[i].value_char());
 				break;
 			case 42:
-				info[i].value_char(string);
-				y_scale_factor = atof(string);
+				y_scale_factor = atof(info[i].value_char());
 				break;
 			case 43:
-				info[i].value_char(string);
-				z_scale_factor = atof(string);
+				z_scale_factor = atof(info[i].value_char());
 				break;
 			case 50:
-				info[i].value_char(string);
-				rotation = atof(string);
+				rotation = atof(info[i].value_char());
 				break;
 		}
 	}
@@ -758,9 +714,8 @@ insert::insert( std::vector< dxfpair > info){
 
 
 const char * insert::name() const{
-	return block_name;
+	return block_name.c_str();
 }
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -769,26 +724,20 @@ const char * insert::name() const{
 	
 
 
-entities::entities(std::vector< std::vector< dxfpair > > sections){
+entities::entities(const std::vector< std::vector< dxfpair > > &sections){
 	// Read the main information about the entities section and then put it in the enetites class
 	int value;
-	char string[10000];
-	std::vector< dxfpair > single_line;
 	std::vector< std::vector< dxfpair > > pline;
-	pline.clear();
-	single_line.clear();
 	
 	for(size_t i = 0; i < sections.size(); i++){
-		sections[i][0].value_char(string);
-		value = detmine_entity(string);
+		value = detmine_entity(sections[i][0].value_char());
 		switch( value ){
 			case 0:
 				// Get everything from the start of the polyline designation to an SEQEND value
 				pline.clear();  // First clear out the pline information
 				do{
 					pline.push_back( sections[i] );
-					sections[++i][0].value_char(string);
-				}while( strncmp(string,"SEQEND",6) != 0 );
+				}while( strncmp(sections[++i][0].value_char(),"SEQEND",6) != 0 );
 				ents_polyline.push_back( polyline( pline ) );
 				break;
 			
@@ -828,70 +777,42 @@ entities::entities(std::vector< std::vector< dxfpair > > sections){
 
 // Maybe all of this could be turned into fewer function by using templates, but no time right now.  MBS
 
-std::vector< polyline > entities::ret_plines(){
-	std::vector< polyline > pls;
-	for(int i = 0; i < ents_polyline.size();i++){
-		pls.push_back( ents_polyline[i] );
-	}
-	return pls;
+const std::vector< polyline > &entities::ret_plines() const{
+	return ents_polyline;
 }
 
-std::vector< lwpolyline > entities::ret_lwplines(){
-	std::vector< lwpolyline > lwpls;
-	for(int i = 0; i < ents_lwpolyline.size();i++){
-		lwpls.push_back( ents_lwpolyline[i] );
-	}
-	return lwpls;
+const std::vector< lwpolyline > &entities::ret_lwplines() const{
+	return ents_lwpolyline;
 }
 
 
-std::vector< arc > entities::ret_arcs(){
-	std::vector< arc > a;
-	for(int i = 0; i < ents_arc.size();i++){
-		a.push_back( ents_arc[i] );
-	}
-	return a;
+const std::vector< arc > &entities::ret_arcs() const{
+	return ents_arc;
 }
 
-std::vector< circle > entities::ret_circles(){
-	std::vector< circle > circs;
-	for(int i = 0; i < ents_circle.size();i++){
-		circs.push_back( ents_circle[i] );
-	}
-	return circs;
+const std::vector< circle > &entities::ret_circles() const{
+    return ents_circle;
 }
 
 
-std::vector< line > entities::ret_lines(){
-	std::vector< line > lns;
-	for(int i = 0; i < ents_line.size();i++){
-		lns.push_back( ents_line[i] );
-	}
-	return lns;
+const std::vector< line > &entities::ret_lines() const{
+	return ents_line;
 }
 
 
-std::vector< text > entities::ret_texts(){
-	std::vector< text > txts;
-	for(int i = 0; i < ents_text.size();i++){
-		txts.push_back( ents_text[i] );
-	}
-	return txts;
+const std::vector< text > &entities::ret_texts() const{
+	return ents_text;
 }
 
 
-std::vector< insert > entities::ret_inserts(){
-	std::vector< insert > ins;
-	for(int i = 0; i < ents_insert.size();i++){
-		ins.push_back( ents_insert[i] );
-	}
-	return ins;
+const std::vector< insert > &entities::ret_inserts() const{
+	return ents_insert;
 }
 
 
 
 // Overload the return function to depend on the layer
-std::vector< polyline > entities::ret_plines(const char * layer){
+std::vector< polyline > entities::ret_plines(const char * layer) const{
 	std::vector< polyline > pls;
 	
 	for(int i = 0; i < ents_polyline.size();i++){
@@ -903,7 +824,7 @@ std::vector< polyline > entities::ret_plines(const char * layer){
 }
 
 
-std::vector< lwpolyline > entities::ret_lwplines(const char * layer){
+std::vector< lwpolyline > entities::ret_lwplines(const char * layer) const{
 	std::vector< lwpolyline > lwpls;
 	
 	for(int i = 0; i < ents_lwpolyline.size();i++){
@@ -915,7 +836,7 @@ std::vector< lwpolyline > entities::ret_lwplines(const char * layer){
 }
 
 
-std::vector< circle > entities::ret_circles(const char * layer){
+std::vector< circle > entities::ret_circles(const char * layer) const{
 	std::vector< circle > circs;
 	
 	for(int i = 0; i < ents_circle.size();i++){
@@ -927,7 +848,7 @@ std::vector< circle > entities::ret_circles(const char * layer){
 }
 
 
-std::vector< line > entities::ret_lines(const char * layer){
+std::vector< line > entities::ret_lines(const char * layer) const{
 	std::vector< line > lns;
 	
 	for(int i = 0; i < ents_line.size();i++){
@@ -939,7 +860,7 @@ std::vector< line > entities::ret_lines(const char * layer){
 }
 
 
-std::vector< text > entities::ret_texts(const char * layer){
+std::vector< text > entities::ret_texts(const char * layer) const{
 	std::vector< text > txts;
 	
 	for(int i = 0; i < ents_text.size();i++){
@@ -951,7 +872,7 @@ std::vector< text > entities::ret_texts(const char * layer){
 }
 
 
-/*std::vector< ellipse > entities::ret_ellipses(char * layer){
+/*std::vector< ellipse > entities::ret_ellipses(char * layer) const{
 	std::vector< polyline > pls;
 	
 	for(int i = 0; i < ents_polyline.size();i++){
@@ -963,7 +884,7 @@ std::vector< text > entities::ret_texts(const char * layer){
 }*/
 
 
-std::vector< arc > entities::ret_arcs(const char * layer){
+std::vector< arc > entities::ret_arcs(const char * layer) const{
 	std::vector< arc > a;
 	
 	for(int i = 0; i < ents_arc.size();i++){
@@ -975,7 +896,7 @@ std::vector< arc > entities::ret_arcs(const char * layer){
 }
 
 
-std::vector< insert > entities::ret_inserts(const char * layer){
+std::vector< insert > entities::ret_inserts(const char * layer) const{
 	std::vector< insert > ins;
 	
 	for(int i = 0; i < ents_insert.size();i++){
@@ -987,9 +908,7 @@ std::vector< insert > entities::ret_inserts(const char * layer){
 }
 
 
-
-
-void entities::display_all(){
+void entities::display_all() const{
 	for (size_t i = 0; i < ents_polyline.size(); i++){
 		ents_polyline[i].display();
 	}

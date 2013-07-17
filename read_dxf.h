@@ -10,8 +10,7 @@
 class dxfpair{	
 	public:
 	dxfpair(int gcode, const char *val);
-	~dxfpair();
-	char * value_char(char *string);
+	const char * value_char() const;
 	
 	// Leave this data public	
 	int group_code;

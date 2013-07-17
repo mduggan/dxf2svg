@@ -6,20 +6,21 @@ Google SOC 2005
 #ifndef DXF_BLOCKS_H
 #define DXF_BLOCKS_H
 
-#include"read_dxf.h"
-#include"entities.h"
-#include<vector>
+#include "read_dxf.h"
+#include "entities.h"
+#include <vector>
+#include <string>
 
 
 class block : public entity, public entities{// : public entities, {
 	public:
-		block( std::vector< std::vector< dxfpair > > sections ); // Group all of the blocks as entities
-		char* name(char* string);
+		block(const std::vector< std::vector< dxfpair > > &sections); // Group all of the blocks as entities
+		const char* name() const;
 		//void blocks_display();
 		
 	
 	protected:
-		char block_name[10000];
+		std::string block_name;
 		double rotation;
 		
 	private:
@@ -28,8 +29,8 @@ class block : public entity, public entities{// : public entities, {
 
 class blocks{
 	public:
-		blocks(std::vector< std::vector< dxfpair > > sections);
-		block ret_block(const char *block_name);
+		blocks(const std::vector< std::vector< dxfpair > > &sections);
+		const block &ret_block(const char *block_name) const;
 		
 	protected:
 		std::vector< block > blocks_blocks;

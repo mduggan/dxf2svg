@@ -31,7 +31,7 @@ SoC 2005
 // The names indicate the DXF entitiy first and the SVG element last
 
 // Common elements
-static char *to_arc(double bulge, double r, double start_ang, double end_ang, int precision, const char* delim, const char * units, double scaling, char *out){
+static char *to_arc(double bulge, double r, double start_ang, double end_ang, int precision, const char * delim, const char * units, double scaling, char *out){
 	// This is used for arcs, polylines, and lwpolylines
 	char temp[50];
 	
@@ -65,7 +65,7 @@ static char *to_arc(double bulge, double r, double start_ang, double end_ang, in
 
 // Build Coordinate
 // Pairs of coords with units will be used so often build a function
-static char *coord(entity *ent, int precision, const char* delim, const char * units, double scaling, char *out){
+static char *coord(const entity *ent, int precision, const char* delim, const char * units, double scaling, char *out){
 	// Pairs of coords with units will be used so often build a function build a dedicated function for returning such
 	
 	char temp[20];
@@ -81,7 +81,7 @@ static char *coord(entity *ent, int precision, const char* delim, const char * u
 
 // DXF Polyline -> SVG
 // General function for the conversion of a pline to a SVG element.  Very similar functions just make accomidations for parts that may not be supported
-void pline2svg(polyline pline, int type, int precision, const char * units, double scaling, tables plot_info, char *out){
+void pline2svg(const polyline &pline, int type, int precision, const char * units, double scaling, const tables &plot_info, char *out){
 	// 0 is pline2path
 	// 1 is pline2pline
 	// 2 is pline2polygon
@@ -134,28 +134,26 @@ void pline2svg(polyline pline, int type, int precision, const char * units, doub
 		
 }
 
-char* pline2path(polyline pline, const char * units, double scaling, tables plot_info, char * out){
+char* pline2path(const polyline &pline, const char * units, double scaling, const tables &plot_info, char * out){
 	// Convert a dxf polyline to a SVG path.  This is the closest conversion of the DXF polyline to an SVG element
 	strcat(out, "<path d=\"");
-	entity *ent_ptr = &pline;
 	int precision = 6;
 	
 	pline2svg(pline, 0, precision, units, scaling, plot_info, out);
 	// Add some line information
 	strcat(out,"fill=\"none\" stroke=\"black\" stroke-width=\"1\" ");
-	pattern2dasharray(plot_info.ret_ltype( ent_ptr->ret_ltype_name(),ent_ptr->ret_layer_name() ), precision, scaling, out);  // Add the linetype information
+	pattern2dasharray(plot_info.ret_ltype( pline.ret_ltype_name(), pline.ret_layer_name() ), precision, scaling, out);  // Add the linetype information
 	
 	strcat(out,"/>\n");
 	return out;	
 }
 
-char* pline2pline(polyline pline, const char * units, double scaling, tables plot_info, char * out){
+char* pline2pline(const polyline &pline, const char * units, double scaling, const tables &plot_info, char * out){
 	// Convert a dxf polyline to a SVG polyline.  The conversion is not 1:1 because the SVG pline doesn't support closed objects or curves
-	entity *ent_ptr = &pline;
 	int precision = 6;
 	
 	strcat(out, "<polyline fill=\"none\" stroke=\"black\" stroke-width=\"1\" ");
-	ltype linfo = plot_info.ret_ltype(ent_ptr->ret_ltype_name(), ent_ptr->ret_layer_name());
+	ltype linfo = plot_info.ret_ltype(pline.ret_ltype_name(), pline.ret_layer_name());
 	pattern2dasharray(linfo, precision, scaling, out);  // Add the linetype information
 	
 	strcat(out,"points=\"");
@@ -168,7 +166,7 @@ char* pline2pline(polyline pline, const char * units, double scaling, tables plo
 	strcat(out,"\"/>\n");
 	return out;
 }
-//char* pline2polygon(polyline pline, const char * units, double scaling, tables plot_info){
+//char* pline2polygon(polyline pline, const char * units, double scaling, const tables &plot_info){
 	// Convert a dxf polyline to a SVG polygon.  The conversion is not 1:1 because the SVG polygone assumes a closed path.  If the pline is not closed it will be forced closed
 	//return pline2svg(pline, 2, 6, units, double scaling,out);	
 //}
@@ -178,7 +176,7 @@ char* pline2pline(polyline pline, const char * units, double scaling, tables plo
 
 
 // This could be a template with polyline and lwpolyline but right now it is not that important
-void lwpline2svg(lwpolyline pline, int type, int precision, const char * units, double scaling, tables plot_info, char *out){
+void lwpline2svg(const lwpolyline &pline, int type, int precision, const char * units, double scaling, const tables &plot_info, char *out){
 	// 0 is pline2path
 	// 1 is pline2pline
 	// 2 is pline2polygon
@@ -232,9 +230,8 @@ void lwpline2svg(lwpolyline pline, int type, int precision, const char * units, 
 		
 }
 
-char* lwpline2path(lwpolyline pline, const char * units, double scaling, tables plot_info, char *out){
+char* lwpline2path(const lwpolyline &pline, const char * units, double scaling, const tables &plot_info, char *out){
 	// Convert a dxf polyline to a SVG path.  This is the closest conversion of the DXF polyline to an SVG element
-	entity *ent_ptr = &pline;
 	int precision = 6;
 
 	strcat(out, "<path d=\"");
@@ -242,24 +239,23 @@ char* lwpline2path(lwpolyline pline, const char * units, double scaling, tables 
 	lwpline2svg(pline, 0, precision, units, scaling, plot_info, out);
 	// Add some line information
 	strcat(out,"fill=\"none\" stroke=\"black\" stroke-width=\"1\" ");
-	pattern2dasharray(plot_info.ret_ltype( ent_ptr->ret_ltype_name(),ent_ptr->ret_layer_name() ), precision, scaling, out);  // Add the linetype information
+	pattern2dasharray(plot_info.ret_ltype( pline.ret_ltype_name(),pline.ret_layer_name() ), precision, scaling, out);  // Add the linetype information
 	
 	strcat(out,"/>\n");
 	return out;	
 }
 
 // DXF ARC -> SVG
-char* arc2path(arc a, int precision, const char * units, double scaling, tables plot_info, char *out){
+char* arc2path(const arc &a, int precision, const char * units, double scaling, const tables &plot_info, char *out){
 	// So far this appears to be the only way to convert arcs into something recognized by SVG
 	char *out_ptr;
 	char temp[20];
-	entity *ent_ptr = &a;
 	
-	strcpy(out,"<path d=\"M");
+	strcat(out,"<path d=\"M");
 	// Calculate the starting point from the center and the start angle.  As far as I can tell the rotation is CCW in the dxf notation and it in degrees
-	strcat(out,gcvt(scaling*(ent_ptr->ret_x()+a.ret_radius()*cos( a.ret_srt_ang()*3.14159/180 )),precision,temp) );
+	strcat(out,gcvt(scaling*(a.ret_x()+a.ret_radius()*cos( a.ret_srt_ang()*3.14159/180 )),precision,temp) );
 	strcat(out," ");
-	strcat(out,gcvt(-1*scaling*(ent_ptr->ret_y()+a.ret_radius()*sin( a.ret_srt_ang()*3.14159/180 )),precision,temp) );
+	strcat(out,gcvt(-1*scaling*(a.ret_y()+a.ret_radius()*sin( a.ret_srt_ang()*3.14159/180 )),precision,temp) );
 	strcat(out," A ");
 	// For arcs there is only one radius
 	strcat(out,gcvt(scaling*a.ret_radius(),precision,temp) );
@@ -276,11 +272,11 @@ char* arc2path(arc a, int precision, const char * units, double scaling, tables 
 	}
 	
 	//The final point
-	strcat(out,gcvt(scaling*(ent_ptr->ret_x()+a.ret_radius()*cos( a.ret_end_ang()*3.14159/180 )),precision,temp) );
+	strcat(out,gcvt(scaling*(a.ret_x()+a.ret_radius()*cos( a.ret_end_ang()*3.14159/180 )),precision,temp) );
 	strcat(out,",");
-	strcat(out,gcvt(-1*scaling*(ent_ptr->ret_y()+a.ret_radius()*sin( a.ret_end_ang()*3.14159/180 )),precision,temp) );
+	strcat(out,gcvt(-1*scaling*(a.ret_y()+a.ret_radius()*sin( a.ret_end_ang()*3.14159/180 )),precision,temp) );
 	strcat(out,"\" fill=\"none\" stroke=\"black\" stroke-width=\"1\" ");
-	ltype linfo = plot_info.ret_ltype(ent_ptr->ret_ltype_name(), ent_ptr->ret_layer_name());
+	ltype linfo = plot_info.ret_ltype(a.ret_ltype_name(), a.ret_layer_name());
 	pattern2dasharray(linfo, precision, scaling, out);  // Add the linetype information
 	strcat(out, "/>\n");
 	
@@ -292,17 +288,16 @@ char* arc2path(arc a, int precision, const char * units, double scaling, tables 
 
 
 // DXF Circle -> SVG
-char* circle2circle(circle circ, int precision, const char * units, double scaling, tables plot_info, char *out){
+char* circle2circle(const circle &circ, int precision, const char * units, double scaling, const tables &plot_info, char *out){
 	// Direct conversion of DXF circle to SVG circle
 	char temp[1000]="\" cy=\"";
-	entity *ent_ptr = &circ;
-	strcpy(out,"<circle cx=\"");
-	coord(ent_ptr, precision, temp, units, scaling, out);
+	strcat(out,"<circle cx=\"");
+	coord(&circ, precision, temp, units, scaling, out);
 	strcat(out,"\" r=\"");
 	strcat(out,gcvt(circ.ret_radius(), precision, temp) );
 	strcat(out,units);
 	strcat(out,"\" fill=\"none\" stroke=\"black\" stroke-width=\"1\" ");
-	ltype linfo = plot_info.ret_ltype(ent_ptr->ret_ltype_name(), ent_ptr->ret_layer_name());
+	ltype linfo = plot_info.ret_ltype(circ.ret_ltype_name(), circ.ret_layer_name());
 	//plot_info.ret_ltype(ent_ptr->ret_ltype_name(), ent_ptr->ret_layer_name());
 	pattern2dasharray(linfo, precision, scaling, out);  // Add the linetype information
 	//pattern2dasharray(plot_info.ret_ltype(ent_ptr->ret_ltype_name(), ent_ptr->ret_layer_name()), precision, scaling, out);  // Add the linetype information
@@ -310,17 +305,16 @@ char* circle2circle(circle circ, int precision, const char * units, double scali
 	return out;
 }
 
-char* circle2path(circle circ, int precision, const char * units, double scaling, tables plot_info, char *out){
+char* circle2path(const circle &circ, int precision, const char * units, double scaling, const tables &plot_info, char *out){
 	// Conversion of DXF circle to SVG circle assuming the path will represent the circle
 	
 	char temp[20];
-	entity *ent_ptr = &circ;	
 	
-	strcpy(out,"<path d=\"M");
+	strcat(out,"<path d=\"M");
 	// The starting point is x-r,y so subtract off the radius from the x coord
-	strcat(out,gcvt(ent_ptr->ret_x()-circ.ret_radius(),precision,temp) );
+	strcat(out,gcvt(circ.ret_x()-circ.ret_radius(),precision,temp) );
 	strcat(out," ");
-	strcat(out,gcvt(ent_ptr->ret_y(),precision,temp) );
+	strcat(out,gcvt(circ.ret_y(),precision,temp) );
 	
 	strcat(out," a");
 	strcat(out,gcvt(circ.ret_radius(),precision,temp) );
@@ -333,16 +327,15 @@ char* circle2path(circle circ, int precision, const char * units, double scaling
 
 
 // DXF Line -> SVG
-char* line2line(line ln, int precision, const char * units, double scaling, tables plot_info, char *out){
+char* line2line(const line &ln, int precision, const char * units, double scaling, const tables &plot_info, char *out){
 	// Directly convert DXF to SVG because it works
 	char temp[20];
-	entity *ent_ptr = &ln;	
 	
-	strcpy(out,"<line x1=\"");
-	strcat(out,gcvt(ent_ptr->ret_x(),precision,temp) );
+	strcat(out,"<line x1=\"");
+	strcat(out,gcvt(ln.ret_x(),precision,temp) );
 	strcat(out,units);
 	strcat(out,"\" y1=\"");
-	strcat(out,gcvt(-1*ent_ptr->ret_y(),precision,temp) ); // Put in an extra minus because of the way SVG has defined the axis
+	strcat(out,gcvt(-1*ln.ret_y(),precision,temp) ); // Put in an extra minus because of the way SVG has defined the axis
 	strcat(out,units);
 	
 	strcat(out,"\" x2=\"");
@@ -352,7 +345,7 @@ char* line2line(line ln, int precision, const char * units, double scaling, tabl
 	strcat(out,gcvt(-1*ln.ret_yf(),precision,temp) ); // Put in an extra minus because of the way SVG has defined the axis
 	strcat(out,units);
 	strcat(out,"\" stroke-width=\"1\" stroke=\"black\" ");
-	ltype linfo = plot_info.ret_ltype(ent_ptr->ret_ltype_name(), ent_ptr->ret_layer_name());
+	ltype linfo = plot_info.ret_ltype(ln.ret_ltype_name(), ln.ret_layer_name());
 	pattern2dasharray(linfo, precision, scaling, out);  // Add the linetype information
 	strcat(out, " />");
 		
@@ -360,16 +353,14 @@ char* line2line(line ln, int precision, const char * units, double scaling, tabl
 }
 
 
-char* line2path(line ln, int precision, const char * units, double scaling, tables plot_info, char *out){
+char* line2path(const line &ln, int precision, const char * units, double scaling, const tables &plot_info, char *out){
 	// Convert DXF line to SVG path
-	
 	char temp[20];
-	entity *ent_ptr = &ln;	
 	
-	strcpy(out,"<path d=\"M");
-	strcat(out,gcvt(scaling*ent_ptr->ret_x(),precision,temp) );
+	strcat(out,"<path d=\"M");
+	strcat(out,gcvt(scaling*ln.ret_x(),precision,temp) );
 	strcat(out," ");
-	strcat(out,gcvt(scaling*ent_ptr->ret_y(),precision,temp) );
+	strcat(out,gcvt(scaling*ln.ret_y(),precision,temp) );
 	
 	strcat(out," L");
 	strcat(out,gcvt(scaling*ln.ret_xf(),precision,temp) );
@@ -382,15 +373,14 @@ char* line2path(line ln, int precision, const char * units, double scaling, tabl
 }
 
 // DXF Text -> SVG
-char* text2text(text txt, int precision, const char * units, double scaling, tables plot_info, char *out){
+char* text2text(const text &txt, int precision, const char * units, double scaling, const tables &plot_info, char *out){
 	// Directly convert DXF to SVG because it works
 	char temp[100];	
-	entity *ent_ptr = &txt;
 	
 	// If the text is rotated use the transform matrix
 
 	if ( txt.ret_txt_rot() > precision ){
-		strcpy(out, "<g transform=\"matrix(");
+		strcat(out, "<g transform=\"matrix(");
 		strcat(out,gcvt(cos(0.017453*txt.ret_txt_rot()),precision,temp) );
 		strcat(out," ");
 		strcat(out,gcvt(sin(0.017453*txt.ret_txt_rot()),precision,temp) );
@@ -402,12 +392,12 @@ char* text2text(text txt, int precision, const char * units, double scaling, tab
 		strcat(out,"<text x=\"");
 	}
 	else{
-		strcpy(out,"<text x=\"");
+		strcat(out,"<text x=\"");
 	}
-	strcat(out,gcvt(ent_ptr->ret_x(),precision,temp) );
+	strcat(out,gcvt(txt.ret_x(),precision,temp) );
 	strcat(out,units);
 	strcat(out,"\" y=\"-"); // Put in an extra minus because of the way SVG has defined the axis
-	strcat(out,gcvt(ent_ptr->ret_y(),precision,temp) );
+	strcat(out,gcvt(txt.ret_y(),precision,temp) );
 	strcat(out,units);
 	strcat(out,"\" font-family=\"Verdana\" font-size=\"");
 	strcat(out,gcvt(scaling*txt.ret_txt_ht(),precision,temp) );
@@ -430,55 +420,59 @@ char* text2text(text txt, int precision, const char * units, double scaling, tab
 
 
 // DXF Insert -> SVG
-char* insert2group(insert in, int precision, const char * units, double scaling, tables plot_info, blocks blks, char *out){
-	char tmp_char[100000];
+char* insert2group(const insert &in, int precision, const char * units, double scaling, const tables &plot_info, const blocks &blks, char *out){
+	char tmp_char[400000];
 	
 	//  get the block using the name from the insert information
-	block blk = blks.ret_block(in.name());
+	const block &blk = blks.ret_block(in.name());
 	
-	entity *ent_ptr = &in;
-	entities *ents_ptr = &blk;
 	// For now just translations  MBS 22 Aug 05
-	strcpy(out, "<g transform=\"matrix(1,0,0,1,");
-	strcat(out,gcvt(scaling*ent_ptr->ret_x(),precision,tmp_char) );
+	strcat(out, "<g transform=\"matrix(1,0,0,1,");
+	strcat(out,gcvt(scaling*in.ret_x(),precision,tmp_char) );
 	strcat(out,",");
-	strcat(out,gcvt(-scaling*ent_ptr->ret_y(),precision,tmp_char) );
+	strcat(out,gcvt(-scaling*in.ret_y(),precision,tmp_char) );
 	strcat(out,")\" >\n");
 	
 	
 	// Now convert the entities in the block
-	std::vector< polyline > plines = ents_ptr->ret_plines();
-	std::vector< lwpolyline > lwplines = ents_ptr->ret_lwplines();
-	std::vector< arc > arcs = ents_ptr->ret_arcs();
-	std::vector< circle > circs = ents_ptr->ret_circles();
-	std::vector< line > lns = ents_ptr->ret_lines();
-	std::vector< text > txts = ents_ptr->ret_texts();
+	std::vector< polyline > plines = blk.ret_plines();
+	std::vector< lwpolyline > lwplines = blk.ret_lwplines();
+	std::vector< arc > arcs = blk.ret_arcs();
+	std::vector< circle > circs = blk.ret_circles();
+	std::vector< line > lns = blk.ret_lines();
+	std::vector< text > txts = blk.ret_texts();
 	
 		
 	
 	for(size_t i = 0; i < plines.size();i++){
 		strcat( out,pline2pline(plines[i], units, scaling, plot_info, tmp_char ) );
 		strcat( out, "\n" );
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < lwplines.size();i++){
 		strcat( out,lwpline2path(lwplines[i], units, scaling, plot_info, tmp_char ) );
 		strcat( out, "\n" );
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < arcs.size();i++){
 		strcat( out, arc2path(arcs[i], 6,units, scaling, plot_info, tmp_char ) );
 		strcat( out, "\n" );
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < circs.size();i++){
 		strcat( out, circle2circle(circs[i], 6, units, scaling, plot_info, tmp_char) );
 		strcat( out, "\n" );
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < lns.size();i++){
 		strcat( out, line2line(lns[i], 6, units, scaling, plot_info, tmp_char) );
 		strcat( out, "\n" );
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < txts.size();i++){
 		strcat( out, text2text(txts[i], 6, units, scaling, plot_info, tmp_char) );
 		strcat( out, "\n" );
+        tmp_char[0] = 0;
 	}
 	// End the group
 	strcat(out,"</g>");
@@ -488,7 +482,7 @@ char* insert2group(insert in, int precision, const char * units, double scaling,
 
 
 
-void write_by_layer(entities &ents, tables &tbls, blocks &blks, double scaling, const char * units, const char * layer){
+void write_by_layer(const entities &ents, const tables &tbls, const blocks &blks, double scaling, const char * units, const char * layer){
 	// output_type = 0 is to std:out
 	// output_type = 1 is to the input filename but with .dxf on the end
 	
@@ -507,30 +501,37 @@ void write_by_layer(entities &ents, tables &tbls, blocks &blks, double scaling, 
 	char tmp_char[100000];
 	for(size_t i = 0; i < plines.size();i++){
 		std::cout << "\t" << pline2path(plines[i], NULL, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < lwplines.size();i++){
 		std::cout << "\t" << lwpline2path(lwplines[i], units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < arcs.size();i++){
 		std::cout << "\t" << arc2path(arcs[i], 6,units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < circs.size();i++){
 		std::cout << "\t" << circle2circle(circs[i], 6, units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < lns.size();i++){
 		std::cout << "\t" << line2line(lns[i], 6, units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < txts.size();i++){
 		std::cout << "\t" << text2text(txts[i], 6, units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
 	}
 	for(size_t i = 0; i < ins.size();i++){
 		std::cout << "\t" << insert2group(ins[i], 6, units, scaling, tbls, blks, tmp_char) << std::endl;
+        tmp_char[0] = 0;
 	}
 }
 
 
 
-void write_all(entities &ents, tables &tbls, blocks &blks, double scaling, const char * units){
+void write_all(const entities &ents, const tables &tbls, const blocks &blks, double scaling, const char * units){
 	// output_type = 0 is to std:out
 	// output_type = 1 is to the input filename but with .dxf on the end
 	
@@ -549,24 +550,31 @@ void write_all(entities &ents, tables &tbls, blocks &blks, double scaling, const
 	char tmp_char[100000];
     for(size_t i = 0; i < plines.size();i++){
         std::cout << "\t" << pline2path(plines[i], NULL, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
     }
     for(size_t i = 0; i < lwplines.size();i++){
         std::cout << "\t" << lwpline2path(lwplines[i], units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
     }
     for(size_t i = 0; i < arcs.size();i++){
         std::cout << "\t" << arc2path(arcs[i], 6,units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
     }
     for(size_t i = 0; i < circs.size();i++){
         std::cout << "\t" << circle2circle(circs[i], 6, units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
     }
     for(size_t i = 0; i < lns.size();i++){
         std::cout << "\t" << line2line(lns[i], 6, units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
     }
     for(size_t i = 0; i < txts.size();i++){
         std::cout << "\t" << text2text(txts[i], 6, units, scaling, tbls, tmp_char) << std::endl;
+        tmp_char[0] = 0;
     }
     for(size_t i = 0; i < ins.size();i++){
         std::cout << "\t" << insert2group(ins[i], 6, units, scaling, tbls, blks, tmp_char) << std::endl;
+        tmp_char[0] = 0;
     }
 }
 

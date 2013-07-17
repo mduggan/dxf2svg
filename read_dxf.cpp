@@ -39,26 +39,18 @@ int section(const char* value){
 
 dxfpair::dxfpair(int gcode, const char *val){
     group_code = gcode;
-    // Dynamically save the strings, otherwise the memory uses is bad
     value = val;
-}
 
-
-dxfpair::~dxfpair(){
-}
-
-char * dxfpair::value_char(char *string){
-    const char *v = value.c_str();
 	int size = value.length();
-	while( ( size > 0 ) && int(v[size-1]) < 33){
-		// Strip off any control characters and spaces off the end of the string
+	// Strip off any control characters and spaces off the end of the string
+	while ((size > 0) && int(value[size-1]) < 33) {
 		size--;
 	}
-	for(int i = 0; i < size; i++){
-		string[i] = v[i];
-	}
-	string[size] = 0;
-    return string;
+    value = value.substr(0, size);
+}
+
+const char * dxfpair::value_char() const{
+    return value.c_str();
 }
 
 std::vector< std::vector< dxfpair > > dxf_get_sections(const char* filename){

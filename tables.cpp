@@ -18,7 +18,7 @@
 
 
 
-int determine_table(char* value){
+int determine_table(const char* value){
 	// Common Elements as far as I am concerend
 	if ( strncmp(value,"LAYER",5) == 0 ) return 0;	
 	if ( strncmp(value,"LTYPE",5) == 0 ) return 1;	
@@ -37,7 +37,7 @@ int determine_table(char* value){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int table::ret_maxN(){
+int table::ret_maxN() const{
 	return max_number;
 }
 
@@ -54,37 +54,33 @@ layer::layer( std::vector< dxfpair > info){
 	// Get the vertex information
 	
 	//basic_entity( info );
-	//static char string[10000];
-	char string[10000];
 	for (size_t i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 2:
-				info[i].value_char(layer_name);
+				layer_name = info[i].value_char();
 				break;
 			case 6:
-				info[i].value_char(ltype_name);
+				ltype_name = info[i].value_char();
 				break;
 				
 			case 62:
-				info[i].value_char(string);
-				color_number = atoi(string);
+				color_number = atoi(info[i].value_char());
 				//std::cout << "I found a color and its number = " << color_number << std::endl;
 				break;
 			case 290:
-				info[i].value_char(string);
-				plotting_flag = atoi(string);				
+				plotting_flag = atoi(info[i].value_char());				
 				break;
 		}
 	}	
 }
 
-void layer::display(){
+void layer::display() const{
 	std::cout << "LAYER\n";
 	//std::cout << "\tx = " << x << "\ty = " << y << "\tz = " << z << "\tbulge = " << bulge << std::flush;
 }
 
 const char* layer::name() const{
-	return layer_name;
+	return layer_name.c_str();
 }
 
 
@@ -97,27 +93,22 @@ const char* layer::name() const{
 ltype::ltype( std::vector< dxfpair > info){
 	// Get the linetype information
 	
-	//static char string[10000];
-	char string[10000];
 	for (int i = 0; i < info.size(); i++){
 		switch( info[i].group_code ){
 			case 2:
-				info[i].value_char(ltype_name);
+				ltype_name = info[i].value_char();
 				break;
 			case 3:
-				info[i].value_char(descriptive_txt);
+				descriptive_txt = info[i].value_char();
 				break;
 			case 73:
-				info[i].value_char(string);
-				num_elements = atoi(string);
+				num_elements = atoi(info[i].value_char());
 				break;
 			case 40:
-				info[i].value_char(string);
-				pattern_length = atof(string);				
+				pattern_length = atof(info[i].value_char());				
 				break;
 			case 49:
-				info[i].value_char(string);
-				pattern.push_back( atof(string) );
+				pattern.push_back(atof(info[i].value_char()));
 				break;
 		}
 	}	
@@ -126,7 +117,7 @@ ltype::ltype( std::vector< dxfpair > info){
 
 
 const char* ltype::name() const{
-	return ltype_name;
+	return ltype_name.c_str();
 }
 
 
@@ -144,12 +135,10 @@ const std::vector< double > &ltype::ret_pattern() const{
 tables::tables(std::vector< std::vector< dxfpair > > sections){
 	// Read the main information about the entities section and then put it in the enetites class
 	int value;
-	char string[10000];
 	
 	for(int i = 0; i < sections.size(); i++){
 		//std::cout << "start" << std::endl;
-		sections[i][0].value_char(string);
-		value = determine_table(string);
+		value = determine_table(sections[i][0].value_char());
 		//std::cout << "sections.size() = " << sections.size() << std::endl << "i = " << i << std::endl << "string = " << string << std::endl;
 		switch( value ){
 			case 0:
@@ -181,27 +170,22 @@ tables::tables(std::vector< std::vector< dxfpair > > sections){
 
 
 		
-ltype tables::ret_ltype(const char *ltype_name, const char *layer_name){
-	int string_len = 0;
-	char name[10000];
+ltype tables::ret_ltype(const char *ltype_name, const char *layer_name) const{
+	std::string name;
 	// The ltype information may be given in the entitity or in the layer information
 	// Assume that if there is a name defined in the linetype that it trumps any other layer information
-	if ( strlen(ltype_name) > 0 ) strcpy(name,ltype_name); 
-	else strcpy(name,layer_name);
+	if ( strlen(ltype_name) > 0 ) name = ltype_name; 
+	else name = layer_name;
 	for (int i = 0; i < tables_ltype.size();i++){
-		string_len = strlen(tables_ltype[i].name());	
-		if (strncmp(tables_ltype[i].name(),name,string_len) == 0 ) return tables_ltype[i];	
+		if (strcmp(tables_ltype[i].name(),name.c_str()) == 0 ) return tables_ltype[i];	
 	}
 	return tables_ltype[0];
 }
 
 
-layer tables::ret_layer(const char *layer_name){
-	int string_len = 0;
-	
+layer tables::ret_layer(const char *layer_name) const{
 	for (int i = 0; i < tables_layer.size();i++){
-		string_len = strlen(tables_layer[i].name());	
-		if (strncmp(tables_layer[i].name(),layer_name,string_len) == 0 ) return tables_layer[i];	
+		if (strcmp(tables_layer[i].name(),layer_name) == 0 ) return tables_layer[i];	
 	}
 	return tables_layer[0];
 }
