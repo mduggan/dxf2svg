@@ -24,6 +24,6 @@ class dxfpair{
 
 std::vector< std::vector< dxfpair > > dxf_get_sections(const char* filename);
 
-std::vector< std::vector< dxfpair > > separate_parts( std::vector< dxfpair > section );  // Find where the major sections are and break into smaller parts
+std::vector< std::vector< dxfpair > > separate_parts(const std::vector< dxfpair > &section);  // Find where the major sections are and break into smaller parts
 
 #endif

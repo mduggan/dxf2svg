@@ -50,7 +50,7 @@ int table::ret_maxN() const{
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-layer::layer( std::vector< dxfpair > info){
+layer::layer(const std::vector< dxfpair > &info){
 	// Get the vertex information
 	
 	//basic_entity( info );
@@ -90,7 +90,7 @@ const char* layer::name() const{
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-ltype::ltype( std::vector< dxfpair > info){
+ltype::ltype(const std::vector< dxfpair > &info){
 	// Get the linetype information
 	
 	for (int i = 0; i < info.size(); i++){
@@ -132,7 +132,7 @@ const std::vector< double > &ltype::ret_pattern() const{
 	
 
 
-tables::tables(std::vector< std::vector< dxfpair > > sections){
+tables::tables(const std::vector< std::vector< dxfpair > > &sections){
 	// Read the main information about the entities section and then put it in the enetites class
 	int value;
 	

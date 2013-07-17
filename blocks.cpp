@@ -28,9 +28,9 @@ const char* block::name() const{
 }
 
 
-void block::block_info(const std::vector< dxfpair > info){
+void block::block_info(const std::vector< dxfpair > &info){
 	for (size_t i = 0; i < info.size(); i++){
-		switch( info[i].group_code ){
+		switch(info[i].group_code){
 			case 2: // Block name
 				block_name = info[i].value_char();
 				break;

@@ -222,7 +222,7 @@ std::vector< std::vector< dxfpair > > dxf_get_sections(const char* filename){
 }
 
 
-std::vector< std::vector< dxfpair > > separate_parts( std::vector< dxfpair > section){
+std::vector< std::vector< dxfpair > > separate_parts(const std::vector< dxfpair > &section){
 	//std::cout << "1" << std::endl;
 	//std::cout << "section.size() = " << section.size() << std::endl;
 	// Find where the major sections are and break into smaller parts
@@ -231,7 +231,7 @@ std::vector< std::vector< dxfpair > > separate_parts( std::vector< dxfpair > sec
 	std::vector< std::vector< dxfpair > > outer;
 	//std::cout << "2" << std::endl;
 	for (size_t i = 0; i < section.size(); i++){
-		std::string &value = section[i].value;
+		std::string value = section[i].value;
 
 		//std::cout << "i = " << i << std::endl;
 		//std::cout << "section[i].value.size() = " << section[i].value.size() << std::endl;

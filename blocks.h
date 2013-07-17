@@ -24,7 +24,7 @@ class block : public entity, public entities{// : public entities, {
 		double rotation;
 		
 	private:
-		void block_info(std::vector< dxfpair > info);
+		void block_info(const std::vector< dxfpair > &info);
 };
 
 class blocks{
