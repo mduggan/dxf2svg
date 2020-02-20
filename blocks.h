@@ -14,7 +14,7 @@ Google SOC 2005
 
 class block : public entity, public entities{// : public entities, {
 	public:
-		block(const std::vector< std::vector< dxfpair > > &sections); // Group all of the blocks as entities
+		block(const std::vector<std::vector<dxfpair> > &sections); // Group all of the blocks as entities
 		const char* name() const;
 		//void blocks_display();
 		
@@ -24,16 +24,16 @@ class block : public entity, public entities{// : public entities, {
 		double rotation;
 		
 	private:
-		void block_info(const std::vector< dxfpair > &info);
+		void block_info(const std::vector<dxfpair> &info);
 };
 
 class blocks{
 	public:
-		blocks(const std::vector< std::vector< dxfpair > > &sections);
+		blocks(const std::vector<std::vector<dxfpair> > &sections);
 		const block &ret_block(const char *block_name) const;
 		
 	protected:
-		std::vector< block > blocks_blocks;
+		std::vector<block > blocks_blocks;
 };
 
 #endif

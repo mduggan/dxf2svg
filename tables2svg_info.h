@@ -4,6 +4,6 @@ SOC 2005
 */
 
 
-#include"tables.h"
+#include "tables.h"
 
 char* pattern2dasharray(ltype info, int precision, double scaling, char* temp);

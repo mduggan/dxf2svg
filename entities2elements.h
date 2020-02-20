@@ -8,9 +8,9 @@ SoC 2005
 
 */
 
-#include"entities.h"
-#include"tables.h"
-#include"blocks.h"
+#include "entities.h"
+#include "tables.h"
+#include "blocks.h"
 
 // The names indicate the DXF entitiy first and the SVG element last
 

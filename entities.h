@@ -7,15 +7,15 @@ Google SOC
 #ifndef DXF_ENTITIES_H
 #define DXF_ENTITIES_H
 
-#include"read_dxf.h"
-#include<vector>
+#include "read_dxf.h"
+#include <vector>
 
 
 
-
-class entity{
+class entity {
 	public:
-		void basic_entity( const std::vector< dxfpair > &info); // Extract all of the typical entity information (e.g. layer name, positions)
+    entity() : x(0), y(0), z(0), min_x(0), max_x(0), min_y(0), max_y(0) {};
+		void basic_entity(const std::vector<dxfpair> &info); // Extract all of the typical entity information (e.g. layer name, positions)
 		void entity_display() const;
 		double ret_x() const;
 		double ret_y() const;
@@ -44,11 +44,9 @@ class entity{
 
 
 
-
-
 class vertex : public entity {
 	public:
-		vertex( const std::vector< dxfpair > &info);
+		vertex(const std::vector<dxfpair> &info);
 		void display() const;
 		double ret_bulge() const;
 	
@@ -58,54 +56,52 @@ class vertex : public entity {
 
 
 
-
-
 class polyline : public entity {
 	public:
-		polyline( const std::vector< std::vector< dxfpair > > &sections );
-		const std::vector< vertex > &ret_points() const;
-		double bulge(int point) const;
-		double bulge_r(int point) const;
-		double bulge_start_angle(int point) const;
-		double bulge_end_angle(int point) const;
+		polyline(const std::vector<std::vector<dxfpair> > &sections);
+		const std::vector<vertex> &ret_points() const;
+		double bulge(size_t point) const;
+		double bulge_r(size_t point) const;
+		double bulge_start_angle(size_t point) const;
+		double bulge_end_angle(size_t point) const;
 		bool is_closed() const;
 		void display() const;
 	
 	private:
-		double buldge;
 		int pline_flag; // 70
 		double start_width; // 40
 		double end_width; // 41
 		int curves_flag;
-		std::vector< vertex > points;
+		std::vector<vertex > points;
 };
 
 class lwpolyline : public entity {
 	public:
-		lwpolyline( const std::vector< dxfpair > &section );
-		const std::vector< vertex > &ret_points() const;
-		double bulge(int point) const;
-		double bulge_r(int point) const;
-		double bulge_start_angle(int point) const;
-		double bulge_end_angle(int point) const;
+		lwpolyline(const std::vector<dxfpair> &section);
+		const std::vector<vertex> &ret_points() const;
+		double bulge(size_t point) const;
+		double bulge_r(size_t point) const;
+		double bulge_start_angle(size_t point) const;
+		double bulge_end_angle(size_t point) const;
 		bool is_closed() const;
 		void display() const;
 	
 	private:
-		double buldge;
 		int pline_flag; // 70
 		double start_width; // 40
 		double end_width; // 41
 		int curves_flag;
-		std::vector< vertex > points;
+		std::vector<vertex> points;
 };
 
 class arc : public entity {
 	public:
-		arc( const std::vector< dxfpair > &info);
+		arc(const std::vector<dxfpair> &info);
 		double ret_radius() const;
 		double ret_srt_ang() const;
 		double ret_end_ang() const;
+        double ret_srt_ang_rads() const;
+        double ret_end_ang_rads() const;
 		void display() const;
 	
 	private:
@@ -119,7 +115,7 @@ class arc : public entity {
 
 class circle : public entity {
 	public:
-		circle( const std::vector< dxfpair > &info);
+		circle(const std::vector<dxfpair> &info);
 		void display() const;
 		double ret_radius() const;
 	
@@ -130,7 +126,7 @@ class circle : public entity {
 
 class line : public entity {
 	public:
-		line( const std::vector< dxfpair > &info);
+		line(const std::vector<dxfpair> &info);
 		void display() const;
 		double ret_xf() const;
 		double ret_yf() const;
@@ -144,7 +140,7 @@ class line : public entity {
 
 class ellipse : public entity {
 	public:
-		ellipse( const std::vector< dxfpair > &info);
+		ellipse(const std::vector<dxfpair> &info);
 		void display() const;
 		double ret_x_ma() const;
 		double ret_y_ma() const;
@@ -167,7 +163,7 @@ class ellipse : public entity {
 
 class text : public entity {
 	public:
-		text( const std::vector< dxfpair > &info);
+		text(const std::vector<dxfpair> &info);
 		void display() const;
 		const char * ret_text() const;
 		double ret_txt_ht() const;
@@ -182,7 +178,7 @@ class text : public entity {
 
 class insert : public entity {
 	public:
-		insert( const std::vector< dxfpair > &info);
+		insert(const std::vector<dxfpair> &info);
 		void display() const;
 		const char* name() const;
 		double ret_x_sf() const;
@@ -205,25 +201,26 @@ class entities{
 	// Well I said that I would only use STL containers internally, but I would have to use a dynamically linked list, and I haven't done for a long time soo STL is my crutch.
 	// I also think that there are others in my same boat that prefer stl containers because they are much easier to use
 	public:
-		entities(const std::vector< std::vector< dxfpair > > &sections); // Put the various entities into their respective vectors
+		entities(const std::vector<std::vector<dxfpair> > &sections); // Put the various entities into their respective vectors
 		void display_all() const;
-		const std::vector< polyline > &ret_plines() const;
-		const std::vector< circle > &ret_circles() const;
-		const std::vector< line > &ret_lines() const;
-		const std::vector< text > &ret_texts() const;
-		const std::vector< ellipse > &ret_ellipses() const;
-		const std::vector< arc > &ret_arcs() const;
-		const std::vector< lwpolyline > &ret_lwplines() const;
-		const std::vector< insert > &ret_inserts() const;
+		const std::vector<polyline> &ret_plines() const;
+		const std::vector<circle> &ret_circles() const;
+		const std::vector<line> &ret_lines() const;
+		const std::vector<text> &ret_texts() const;
+		const std::vector<ellipse> &ret_ellipses() const;
+		const std::vector<arc> &ret_arcs() const;
+		const std::vector<lwpolyline> &ret_lwplines() const;
+		const std::vector<insert> &ret_inserts() const;
+    
 		// Overload the return function to depend on the layer
-		std::vector< polyline > ret_plines(const char * layer) const;
-		std::vector< circle > ret_circles(const char * layer) const;
-		std::vector< line > ret_lines(const char * layer) const;
-		std::vector< text > ret_texts(const char * layer) const;
-		std::vector< ellipse > ret_ellipses(const char * layer) const;
-		std::vector< arc > ret_arcs(const char * layer) const;
-		std::vector< lwpolyline > ret_lwplines(const char * layer) const;
-		std::vector< insert > ret_inserts(const char * layer) const;
+		std::vector<polyline> ret_plines(const char * layer) const;
+		std::vector<circle> ret_circles(const char * layer) const;
+		std::vector<line> ret_lines(const char * layer) const;
+		std::vector<text> ret_texts(const char * layer) const;
+		std::vector<ellipse> ret_ellipses(const char * layer) const;
+		std::vector<arc> ret_arcs(const char * layer) const;
+		std::vector<lwpolyline> ret_lwplines(const char * layer) const;
+		std::vector<insert> ret_inserts(const char * layer) const;
 		
 		int plines_size() const;
 		int circles_size() const;
@@ -231,18 +228,14 @@ class entities{
 		int texts_size() const;
 		
 	private:
-		void add_polyline(polyline pline);
-		void add_circle(circle circ);
-		void add_line(line ln);
-		
-		std::vector< polyline > ents_polyline;
-		std::vector< arc > ents_arc;
-		std::vector< circle > ents_circle;
-		std::vector< line > ents_line;
-		std::vector< ellipse > ents_ellipse;
-		std::vector< text > ents_text;
-		std::vector< lwpolyline > ents_lwpolyline;
-		std::vector< insert > ents_insert;
+		std::vector<polyline> ents_polyline;
+		std::vector<arc> ents_arc;
+		std::vector<circle> ents_circle;
+		std::vector<line> ents_line;
+		std::vector<ellipse> ents_ellipse;
+		std::vector<text> ents_text;
+		std::vector<lwpolyline> ents_lwpolyline;
+		std::vector<insert> ents_insert;
 		
 };
 

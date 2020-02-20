@@ -20,7 +20,7 @@ class table{
 
 class layer : public table{
 	public:
-		layer(const std::vector< dxfpair > &info);
+		layer(const std::vector<dxfpair> &info);
 		void display() const;
 		const char* name() const;
 	private:
@@ -34,15 +34,15 @@ class layer : public table{
 
 class ltype : public table{
 	public:
-		ltype(const std::vector< dxfpair > &info);
+		ltype(const std::vector<dxfpair> &info);
 		const char* name() const;
-		const std::vector< double > &ret_pattern() const;
+		const std::vector<double> &ret_pattern() const;
 	private:
 		std::string ltype_name;
 		std::string descriptive_txt;
 		int num_elements;
 		double pattern_length;
-		std::vector< double > pattern;
+		std::vector<double> pattern;
 	
 };
 
@@ -50,13 +50,13 @@ class ltype : public table{
 class tables{
 	// Well I said that I would only use STL containers internally, but I would have to use a dynamically linked list, and I haven't done for a long time soo STL is my crutch.
 	public:
-		tables(const std::vector< std::vector< dxfpair > > &sections); // Put the various entities into their respective vectors
+		tables(const std::vector<std::vector<dxfpair> > &sections); // Put the various entities into their respective vectors
 		void display_all() const;
 		
 		ltype ret_ltype(const char *ltype_name, const char *layer_name) const;
 		layer ret_layer(const char *layer_name) const;
 		
-		const std::vector< layer > &ret_layers() const;
+		const std::vector<layer > &ret_layers() const;
 		
 		
 	private:
@@ -64,8 +64,8 @@ class tables{
 		void add_layer(layer layr);
 		void add_ltype(ltype line_type);
 		
-		std::vector< layer > tables_layer;
-		std::vector< ltype > tables_ltype;
+		std::vector<layer > tables_layer;
+		std::vector<ltype > tables_ltype;
 };
 
 
